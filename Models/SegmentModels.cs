@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace RetailConnect.API.Models
 {
     /// <summary>
@@ -5,9 +7,16 @@ namespace RetailConnect.API.Models
     /// </summary>
     public class CreateSegmentRequest
     {
+        [Required(ErrorMessage = "Segment name is required")]
+        [MaxLength(100, ErrorMessage = "Name cannot exceed 100 characters")]
         public string Name { get; set; } = string.Empty;
+
+        [MaxLength(500, ErrorMessage = "Description cannot exceed 500 characters")]
         public string? Description { get; set; }
+
+        [MaxLength(2000, ErrorMessage = "Criteria cannot exceed 2000 characters")]
         public string? Criteria { get; set; }
+
         public bool IsActive { get; set; } = true;
     }
 
@@ -16,9 +25,16 @@ namespace RetailConnect.API.Models
     /// </summary>
     public class UpdateSegmentRequest
     {
+        [Required(ErrorMessage = "Segment name is required")]
+        [MaxLength(100, ErrorMessage = "Name cannot exceed 100 characters")]
         public string Name { get; set; } = string.Empty;
+
+        [MaxLength(500, ErrorMessage = "Description cannot exceed 500 characters")]
         public string? Description { get; set; }
+
+        [MaxLength(2000, ErrorMessage = "Criteria cannot exceed 2000 characters")]
         public string? Criteria { get; set; }
+
         public bool IsActive { get; set; }
     }
 

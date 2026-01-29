@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OutputCaching;
 using RetailConnect.API.Models;
 using RetailConnect.API.Services.Interfaces;
 
@@ -32,6 +33,7 @@ namespace RetailConnect.API.Controllers
         }
 
         [HttpGet("{id}")]
+        [OutputCache(PolicyName = "GetById")]
         [ProducesResponseType(typeof(CampaignResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetCampaign(int id)
@@ -46,6 +48,7 @@ namespace RetailConnect.API.Controllers
         }
 
         [HttpGet]
+        [OutputCache(PolicyName = "GetAll")]
         [ProducesResponseType(typeof(List<CampaignListItem>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAllCampaigns()
         {

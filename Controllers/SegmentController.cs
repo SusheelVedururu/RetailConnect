@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OutputCaching;
 using RetailConnect.API.Models;
 using RetailConnect.API.Services.Interfaces;
 
@@ -53,6 +54,7 @@ namespace RetailConnect.API.Controllers
         /// <param name="id">Segment ID</param>
         /// <returns>Segment details</returns>
         [HttpGet("{id}")]
+        [OutputCache(PolicyName = "GetById")]
         [ProducesResponseType(typeof(SegmentResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetSegment(int id)
@@ -77,6 +79,7 @@ namespace RetailConnect.API.Controllers
         /// </summary>
         /// <returns>List of segments</returns>
         [HttpGet]
+        [OutputCache(PolicyName = "GetAll")]
         [ProducesResponseType(typeof(List<SegmentListItem>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAllSegments()
         {

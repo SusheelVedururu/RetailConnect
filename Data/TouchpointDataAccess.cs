@@ -1,17 +1,20 @@
 using System.Data;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using RetailConnect.API.Models;
+using RetailConnect.API.Data.Helpers;
 
 namespace RetailConnect.API.Data
 {
     public class TouchpointDataAccess
     {
         private readonly string _connectionString;
+        private readonly ILogger<TouchpointDataAccess> _logger;
 
-        public TouchpointDataAccess(IConfiguration configuration)
+        public TouchpointDataAccess(IConfiguration configuration, ILogger<TouchpointDataAccess> logger)
         {
-            _connectionString = configuration.GetConnectionString("DefaultConnection") 
+            _connectionString = configuration.GetConnectionString("DefaultConnection")
                 ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+            _logger = logger;
         }
 
         public async Task<int> CreateTouchpointAsync(CreateTouchpointRequest request)
@@ -43,14 +46,22 @@ namespace RetailConnect.API.Data
 
             if (await reader.ReadAsync())
             {
+                var cache = new OrdinalCache();
+                var idOrd = cache.Get(reader, "Id");
+                var nameOrd = cache.Get(reader, "Name");
+                var typeOrd = cache.Get(reader, "Type");
+                var configOrd = cache.Get(reader, "Configuration");
+                var isActiveOrd = cache.Get(reader, "IsActive");
+                var createdOrd = cache.Get(reader, "CreatedDate");
+
                 return new TouchpointResponse
                 {
-                    Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                    Name = reader.GetString(reader.GetOrdinal("Name")),
-                    Type = reader.GetString(reader.GetOrdinal("Type")),
-                    Configuration = reader.IsDBNull(reader.GetOrdinal("Configuration")) ? null : reader.GetString(reader.GetOrdinal("Configuration")),
-                    IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
-                    CreatedDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate"))
+                    Id = reader.GetInt32(idOrd),
+                    Name = reader.GetString(nameOrd),
+                    Type = reader.GetString(typeOrd),
+                    Configuration = reader.IsDBNull(configOrd) ? null : reader.GetString(configOrd),
+                    IsActive = reader.GetBoolean(isActiveOrd),
+                    CreatedDate = reader.GetDateTime(createdOrd)
                 };
             }
             return null;
@@ -66,14 +77,29 @@ namespace RetailConnect.API.Data
             await connection.OpenAsync();
             using var reader = await command.ExecuteReaderAsync();
 
+            var cache = new OrdinalCache();
+            var idOrd = -1;
+            var nameOrd = -1;
+            var typeOrd = -1;
+            var isActiveOrd = -1;
+
             while (await reader.ReadAsync())
             {
+                // Cache ordinals on first read
+                if (idOrd == -1)
+                {
+                    idOrd = cache.Get(reader, "Id");
+                    nameOrd = cache.Get(reader, "Name");
+                    typeOrd = cache.Get(reader, "Type");
+                    isActiveOrd = cache.Get(reader, "IsActive");
+                }
+
                 list.Add(new TouchpointResponse
                 {
-                    Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                    Name = reader.GetString(reader.GetOrdinal("Name")),
-                    Type = reader.GetString(reader.GetOrdinal("Type")),
-                    IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive"))
+                    Id = reader.GetInt32(idOrd),
+                    Name = reader.GetString(nameOrd),
+                    Type = reader.GetString(typeOrd),
+                    IsActive = reader.GetBoolean(isActiveOrd)
                 });
             }
             return list;

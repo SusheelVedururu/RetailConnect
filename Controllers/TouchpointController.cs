@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OutputCaching;
 using RetailConnect.API.Models;
 using RetailConnect.API.Services.Interfaces;
 
@@ -27,6 +28,7 @@ namespace RetailConnect.API.Controllers
         }
 
         [HttpGet("{id}")]
+        [OutputCache(PolicyName = "GetById")]
         public async Task<IActionResult> Get(int id)
         {
             try
@@ -38,6 +40,7 @@ namespace RetailConnect.API.Controllers
         }
 
         [HttpGet]
+        [OutputCache(PolicyName = "GetAll")]
         public async Task<IActionResult> GetAll()
         {
             var result = await _service.GetAllTouchpointsAsync();

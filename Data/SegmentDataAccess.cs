@@ -1,21 +1,25 @@
 using System.Data;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using RetailConnect.API.Models;
+using RetailConnect.API.Data.Helpers;
 
 namespace RetailConnect.API.Data
 {
     /// <summary>
     /// Data access layer for Segment operations
     /// Executes stored procedures only - NO inline SQL
+    /// Performance optimized with OrdinalCache to eliminate redundant GetOrdinal() calls
     /// </summary>
     public class SegmentDataAccess
     {
         private readonly string _connectionString;
+        private readonly ILogger<SegmentDataAccess> _logger;
 
-        public SegmentDataAccess(IConfiguration configuration)
+        public SegmentDataAccess(IConfiguration configuration, ILogger<SegmentDataAccess> logger)
         {
-            _connectionString = configuration.GetConnectionString("DefaultConnection") 
+            _connectionString = configuration.GetConnectionString("DefaultConnection")
                 ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+            _logger = logger;
         }
 
         /// <summary>
@@ -55,21 +59,24 @@ namespace RetailConnect.API.Data
 
             if (await reader.ReadAsync())
             {
+                var cache = new OrdinalCache();
+                var idOrd = cache.Get(reader, "Id");
+                var nameOrd = cache.Get(reader, "Name");
+                var descOrd = cache.Get(reader, "Description");
+                var criteriaOrd = cache.Get(reader, "Criteria");
+                var isActiveOrd = cache.Get(reader, "IsActive");
+                var createdOrd = cache.Get(reader, "CreatedDate");
+                var modifiedOrd = cache.Get(reader, "ModifiedDate");
+
                 return new SegmentResponse
                 {
-                    Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                    Name = reader.GetString(reader.GetOrdinal("Name")),
-                    Description = reader.IsDBNull(reader.GetOrdinal("Description")) 
-                        ? null 
-                        : reader.GetString(reader.GetOrdinal("Description")),
-                    Criteria = reader.IsDBNull(reader.GetOrdinal("Criteria")) 
-                        ? null 
-                        : reader.GetString(reader.GetOrdinal("Criteria")),
-                    IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
-                    CreatedDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate")),
-                    ModifiedDate = reader.IsDBNull(reader.GetOrdinal("ModifiedDate")) 
-                        ? null 
-                        : reader.GetDateTime(reader.GetOrdinal("ModifiedDate"))
+                    Id = reader.GetInt32(idOrd),
+                    Name = reader.GetString(nameOrd),
+                    Description = reader.IsDBNull(descOrd) ? null : reader.GetString(descOrd),
+                    Criteria = reader.IsDBNull(criteriaOrd) ? null : reader.GetString(criteriaOrd),
+                    IsActive = reader.GetBoolean(isActiveOrd),
+                    CreatedDate = reader.GetDateTime(createdOrd),
+                    ModifiedDate = reader.IsDBNull(modifiedOrd) ? null : reader.GetDateTime(modifiedOrd)
                 };
             }
 
@@ -90,14 +97,29 @@ namespace RetailConnect.API.Data
             await connection.OpenAsync();
             using var reader = await command.ExecuteReaderAsync();
 
+            var cache = new OrdinalCache();
+            var idOrd = -1;
+            var nameOrd = -1;
+            var isActiveOrd = -1;
+            var memberCountOrd = -1;
+
             while (await reader.ReadAsync())
             {
+                // Cache ordinals on first read
+                if (idOrd == -1)
+                {
+                    idOrd = cache.Get(reader, "Id");
+                    nameOrd = cache.Get(reader, "Name");
+                    isActiveOrd = cache.Get(reader, "IsActive");
+                    memberCountOrd = cache.Get(reader, "MemberCount");
+                }
+
                 segments.Add(new SegmentListItem
                 {
-                    Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                    Name = reader.GetString(reader.GetOrdinal("Name")),
-                    IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
-                    MemberCount = reader.GetInt32(reader.GetOrdinal("MemberCount"))
+                    Id = reader.GetInt32(idOrd),
+                    Name = reader.GetString(nameOrd),
+                    IsActive = reader.GetBoolean(isActiveOrd),
+                    MemberCount = reader.GetInt32(memberCountOrd)
                 });
             }
 
@@ -142,7 +164,7 @@ namespace RetailConnect.API.Data
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error deleting segment {id}: {ex.Message}");
+                _logger.LogError(ex, "Error deleting segment {SegmentId}", id);
                 throw;
             }
         }

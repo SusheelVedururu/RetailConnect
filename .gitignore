@@ -1,3 +1,19 @@
 # Visual Studio
 .vs/
 /bin/Debug/net8.0
+bin/
+obj/
+*.user
+
+# Development settings with secrets
+appsettings.Development.json
+
+# Environment variables
+.env
+
+# Logs
+logs/
+*.log
+
+# macOS
+.DS_Store

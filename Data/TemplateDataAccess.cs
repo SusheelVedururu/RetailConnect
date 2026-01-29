@@ -1,17 +1,20 @@
 using System.Data;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using RetailConnect.API.Models;
+using RetailConnect.API.Data.Helpers;
 
 namespace RetailConnect.API.Data
 {
     public class TemplateDataAccess
     {
         private readonly string _connectionString;
+        private readonly ILogger<TemplateDataAccess> _logger;
 
-        public TemplateDataAccess(IConfiguration configuration)
+        public TemplateDataAccess(IConfiguration configuration, ILogger<TemplateDataAccess> logger)
         {
-            _connectionString = configuration.GetConnectionString("DefaultConnection") 
+            _connectionString = configuration.GetConnectionString("DefaultConnection")
                 ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+            _logger = logger;
         }
 
         public async Task<int> CreateTemplateAsync(CreateTemplateRequest request)
@@ -44,15 +47,24 @@ namespace RetailConnect.API.Data
 
             if (await reader.ReadAsync())
             {
+                var cache = new OrdinalCache();
+                var idOrd = cache.Get(reader, "Id");
+                var nameOrd = cache.Get(reader, "Name");
+                var contentOrd = cache.Get(reader, "Content");
+                var subjectOrd = cache.Get(reader, "Subject");
+                var typeOrd = cache.Get(reader, "Type");
+                var isActiveOrd = cache.Get(reader, "IsActive");
+                var createdOrd = cache.Get(reader, "CreatedDate");
+
                 return new TemplateResponse
                 {
-                    Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                    Name = reader.GetString(reader.GetOrdinal("Name")),
-                    Content = reader.IsDBNull(reader.GetOrdinal("Content")) ? null : reader.GetString(reader.GetOrdinal("Content")),
-                    Subject = reader.IsDBNull(reader.GetOrdinal("Subject")) ? null : reader.GetString(reader.GetOrdinal("Subject")),
-                    Type = reader.GetString(reader.GetOrdinal("Type")),
-                    IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
-                    CreatedDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate"))
+                    Id = reader.GetInt32(idOrd),
+                    Name = reader.GetString(nameOrd),
+                    Content = reader.IsDBNull(contentOrd) ? null : reader.GetString(contentOrd),
+                    Subject = reader.IsDBNull(subjectOrd) ? null : reader.GetString(subjectOrd),
+                    Type = reader.GetString(typeOrd),
+                    IsActive = reader.GetBoolean(isActiveOrd),
+                    CreatedDate = reader.GetDateTime(createdOrd)
                 };
             }
 
@@ -70,14 +82,29 @@ namespace RetailConnect.API.Data
             await connection.OpenAsync();
             using var reader = await command.ExecuteReaderAsync();
 
+            var cache = new OrdinalCache();
+            var idOrd = -1;
+            var nameOrd = -1;
+            var typeOrd = -1;
+            var isActiveOrd = -1;
+
             while (await reader.ReadAsync())
             {
+                // Cache ordinals on first read
+                if (idOrd == -1)
+                {
+                    idOrd = cache.Get(reader, "Id");
+                    nameOrd = cache.Get(reader, "Name");
+                    typeOrd = cache.Get(reader, "Type");
+                    isActiveOrd = cache.Get(reader, "IsActive");
+                }
+
                 templates.Add(new TemplateListItem
                 {
-                    Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                    Name = reader.GetString(reader.GetOrdinal("Name")),
-                    Type = reader.GetString(reader.GetOrdinal("Type")),
-                    IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive"))
+                    Id = reader.GetInt32(idOrd),
+                    Name = reader.GetString(nameOrd),
+                    Type = reader.GetString(typeOrd),
+                    IsActive = reader.GetBoolean(isActiveOrd)
                 });
             }
 

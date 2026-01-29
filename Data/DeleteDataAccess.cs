@@ -1,6 +1,7 @@
 using System.Data;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using RetailConnect.API.Models;
+using RetailConnect.API.Data.Helpers;
 
 namespace RetailConnect.API.Data
 {
@@ -11,11 +12,13 @@ namespace RetailConnect.API.Data
     public class DeleteDataAccess
     {
         private readonly string _connectionString;
+        private readonly ILogger<DeleteDataAccess> _logger;
 
-        public DeleteDataAccess(IConfiguration configuration)
+        public DeleteDataAccess(IConfiguration configuration, ILogger<DeleteDataAccess> logger)
         {
             _connectionString = configuration.GetConnectionString("DefaultConnection")
                 ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+            _logger = logger;
         }
 
         #region Dependency Check Methods
@@ -39,22 +42,29 @@ namespace RetailConnect.API.Data
             await connection.OpenAsync();
             using var reader = await command.ExecuteReaderAsync();
 
+            var cache = new OrdinalCache();
+
             // First result set: Entity info and counts
             if (await reader.ReadAsync())
             {
-                response.EntityExists = reader.GetInt32(reader.GetOrdinal("EntityExists")) == 1;
+                var entityExistsOrd = cache.Get(reader, "EntityExists");
+                response.EntityExists = reader.GetInt32(entityExistsOrd) == 1;
                 if (!response.EntityExists)
                 {
                     response.Message = "Segment not found";
                     return response;
                 }
 
-                response.EntityName = reader.IsDBNull(reader.GetOrdinal("EntityName")) 
-                    ? null 
-                    : reader.GetString(reader.GetOrdinal("EntityName"));
-                response.CurrentStatus = (DeleteStatus)reader.GetByte(reader.GetOrdinal("CurrentStatus"));
-                
-                var campaignCount = reader.GetInt32(reader.GetOrdinal("CampaignCount"));
+                var entityNameOrd = cache.Get(reader, "EntityName");
+                var currentStatusOrd = cache.Get(reader, "CurrentStatus");
+                var campaignCountOrd = cache.Get(reader, "CampaignCount");
+
+                response.EntityName = reader.IsDBNull(entityNameOrd)
+                    ? null
+                    : reader.GetString(entityNameOrd);
+                response.CurrentStatus = (DeleteStatus)reader.GetByte(currentStatusOrd);
+
+                var campaignCount = reader.GetInt32(campaignCountOrd);
                 if (campaignCount > 0)
                 {
                     var dep = new DependencyInfo
@@ -66,11 +76,21 @@ namespace RetailConnect.API.Data
                     // Move to second result set for sample IDs
                     if (await reader.NextResultAsync())
                     {
+                        cache.Clear();
+                        var depIdOrd = -1;
+                        var depNameOrd = -1;
+
                         while (await reader.ReadAsync())
                         {
-                            dep.SampleIds.Add(reader.GetInt32(reader.GetOrdinal("DependentId")));
-                            if (!reader.IsDBNull(reader.GetOrdinal("DependentName")))
-                                dep.SampleNames.Add(reader.GetString(reader.GetOrdinal("DependentName")));
+                            if (depIdOrd == -1)
+                            {
+                                depIdOrd = cache.Get(reader, "DependentId");
+                                depNameOrd = cache.Get(reader, "DependentName");
+                            }
+
+                            dep.SampleIds.Add(reader.GetInt32(depIdOrd));
+                            if (!reader.IsDBNull(depNameOrd))
+                                dep.SampleNames.Add(reader.GetString(depNameOrd));
                         }
                     }
 
@@ -102,21 +122,28 @@ namespace RetailConnect.API.Data
             await connection.OpenAsync();
             using var reader = await command.ExecuteReaderAsync();
 
+            var cache = new OrdinalCache();
+
             if (await reader.ReadAsync())
             {
-                response.EntityExists = reader.GetInt32(reader.GetOrdinal("EntityExists")) == 1;
+                var entityExistsOrd = cache.Get(reader, "EntityExists");
+                response.EntityExists = reader.GetInt32(entityExistsOrd) == 1;
                 if (!response.EntityExists)
                 {
                     response.Message = "Touchpoint not found";
                     return response;
                 }
 
-                response.EntityName = reader.IsDBNull(reader.GetOrdinal("EntityName"))
-                    ? null
-                    : reader.GetString(reader.GetOrdinal("EntityName"));
-                response.CurrentStatus = (DeleteStatus)reader.GetByte(reader.GetOrdinal("CurrentStatus"));
+                var entityNameOrd = cache.Get(reader, "EntityName");
+                var currentStatusOrd = cache.Get(reader, "CurrentStatus");
+                var countOrd = cache.Get(reader, "CampaignTouchpointCount");
 
-                var count = reader.GetInt32(reader.GetOrdinal("CampaignTouchpointCount"));
+                response.EntityName = reader.IsDBNull(entityNameOrd)
+                    ? null
+                    : reader.GetString(entityNameOrd);
+                response.CurrentStatus = (DeleteStatus)reader.GetByte(currentStatusOrd);
+
+                var count = reader.GetInt32(countOrd);
                 if (count > 0)
                 {
                     var dep = new DependencyInfo
@@ -127,11 +154,21 @@ namespace RetailConnect.API.Data
 
                     if (await reader.NextResultAsync())
                     {
+                        cache.Clear();
+                        var depIdOrd = -1;
+                        var depNameOrd = -1;
+
                         while (await reader.ReadAsync())
                         {
-                            dep.SampleIds.Add(reader.GetInt32(reader.GetOrdinal("DependentId")));
-                            if (!reader.IsDBNull(reader.GetOrdinal("DependentName")))
-                                dep.SampleNames.Add(reader.GetString(reader.GetOrdinal("DependentName")));
+                            if (depIdOrd == -1)
+                            {
+                                depIdOrd = cache.Get(reader, "DependentId");
+                                depNameOrd = cache.Get(reader, "DependentName");
+                            }
+
+                            dep.SampleIds.Add(reader.GetInt32(depIdOrd));
+                            if (!reader.IsDBNull(depNameOrd))
+                                dep.SampleNames.Add(reader.GetString(depNameOrd));
                         }
                     }
 
@@ -163,21 +200,28 @@ namespace RetailConnect.API.Data
             await connection.OpenAsync();
             using var reader = await command.ExecuteReaderAsync();
 
+            var cache = new OrdinalCache();
+
             if (await reader.ReadAsync())
             {
-                response.EntityExists = reader.GetInt32(reader.GetOrdinal("EntityExists")) == 1;
+                var entityExistsOrd = cache.Get(reader, "EntityExists");
+                response.EntityExists = reader.GetInt32(entityExistsOrd) == 1;
                 if (!response.EntityExists)
                 {
                     response.Message = "Template not found";
                     return response;
                 }
 
-                response.EntityName = reader.IsDBNull(reader.GetOrdinal("EntityName"))
-                    ? null
-                    : reader.GetString(reader.GetOrdinal("EntityName"));
-                response.CurrentStatus = (DeleteStatus)reader.GetByte(reader.GetOrdinal("CurrentStatus"));
+                var entityNameOrd = cache.Get(reader, "EntityName");
+                var currentStatusOrd = cache.Get(reader, "CurrentStatus");
+                var countOrd = cache.Get(reader, "CampaignTemplateCount");
 
-                var count = reader.GetInt32(reader.GetOrdinal("CampaignTemplateCount"));
+                response.EntityName = reader.IsDBNull(entityNameOrd)
+                    ? null
+                    : reader.GetString(entityNameOrd);
+                response.CurrentStatus = (DeleteStatus)reader.GetByte(currentStatusOrd);
+
+                var count = reader.GetInt32(countOrd);
                 if (count > 0)
                 {
                     var dep = new DependencyInfo
@@ -188,11 +232,21 @@ namespace RetailConnect.API.Data
 
                     if (await reader.NextResultAsync())
                     {
+                        cache.Clear();
+                        var depIdOrd = -1;
+                        var depNameOrd = -1;
+
                         while (await reader.ReadAsync())
                         {
-                            dep.SampleIds.Add(reader.GetInt32(reader.GetOrdinal("DependentId")));
-                            if (!reader.IsDBNull(reader.GetOrdinal("DependentName")))
-                                dep.SampleNames.Add(reader.GetString(reader.GetOrdinal("DependentName")));
+                            if (depIdOrd == -1)
+                            {
+                                depIdOrd = cache.Get(reader, "DependentId");
+                                depNameOrd = cache.Get(reader, "DependentName");
+                            }
+
+                            dep.SampleIds.Add(reader.GetInt32(depIdOrd));
+                            if (!reader.IsDBNull(depNameOrd))
+                                dep.SampleNames.Add(reader.GetString(depNameOrd));
                         }
                     }
 
@@ -224,24 +278,33 @@ namespace RetailConnect.API.Data
             await connection.OpenAsync();
             using var reader = await command.ExecuteReaderAsync();
 
+            var cache = new OrdinalCache();
+
             if (await reader.ReadAsync())
             {
-                response.EntityExists = reader.GetInt32(reader.GetOrdinal("EntityExists")) == 1;
+                var entityExistsOrd = cache.Get(reader, "EntityExists");
+                response.EntityExists = reader.GetInt32(entityExistsOrd) == 1;
                 if (!response.EntityExists)
                 {
                     response.Message = "Campaign not found";
                     return response;
                 }
 
-                response.EntityName = reader.IsDBNull(reader.GetOrdinal("EntityName"))
+                var entityNameOrd = cache.Get(reader, "EntityName");
+                var currentStatusOrd = cache.Get(reader, "CurrentStatus");
+                var touchpointCountOrd = cache.Get(reader, "TouchpointMappingCount");
+                var templateCountOrd = cache.Get(reader, "TemplateMappingCount");
+                var logCountOrd = cache.Get(reader, "LogCount");
+
+                response.EntityName = reader.IsDBNull(entityNameOrd)
                     ? null
-                    : reader.GetString(reader.GetOrdinal("EntityName"));
-                response.CurrentStatus = (DeleteStatus)reader.GetByte(reader.GetOrdinal("CurrentStatus"));
+                    : reader.GetString(entityNameOrd);
+                response.CurrentStatus = (DeleteStatus)reader.GetByte(currentStatusOrd);
 
                 // Campaign can always be deleted - these are just informational
-                var touchpointCount = reader.GetInt32(reader.GetOrdinal("TouchpointMappingCount"));
-                var templateCount = reader.GetInt32(reader.GetOrdinal("TemplateMappingCount"));
-                var logCount = reader.GetInt32(reader.GetOrdinal("LogCount"));
+                var touchpointCount = reader.GetInt32(touchpointCountOrd);
+                var templateCount = reader.GetInt32(templateCountOrd);
+                var logCount = reader.GetInt32(logCountOrd);
 
                 if (touchpointCount > 0)
                     response.Dependencies.Add(new DependencyInfo { EntityType = "TouchpointMapping", Count = touchpointCount });
@@ -289,12 +352,17 @@ namespace RetailConnect.API.Data
 
             if (await reader.ReadAsync())
             {
+                var cache = new OrdinalCache();
+                var rowsAffectedOrd = cache.Get(reader, "RowsAffected");
+                var newStatusOrd = cache.Get(reader, "NewStatus");
+                var messageOrd = cache.Get(reader, "Message");
+
                 return new DeleteOperationResult
                 {
                     Success = true,
-                    AffectedRecords = reader.GetInt32(reader.GetOrdinal("RowsAffected")),
-                    NewStatus = (DeleteStatus)reader.GetInt32(reader.GetOrdinal("NewStatus")),
-                    Message = reader.GetString(reader.GetOrdinal("Message")),
+                    AffectedRecords = reader.GetInt32(rowsAffectedOrd),
+                    NewStatus = (DeleteStatus)reader.GetInt32(newStatusOrd),
+                    Message = reader.GetString(messageOrd),
                     EntityId = entityId,
                     EntityType = entityType
                 };
@@ -332,12 +400,17 @@ namespace RetailConnect.API.Data
 
             if (await reader.ReadAsync())
             {
+                var cache = new OrdinalCache();
+                var rowsAffectedOrd = cache.Get(reader, "RowsAffected");
+                var newStatusOrd = cache.Get(reader, "NewStatus");
+                var messageOrd = cache.Get(reader, "Message");
+
                 return new DeleteOperationResult
                 {
                     Success = true,
-                    AffectedRecords = reader.GetInt32(reader.GetOrdinal("RowsAffected")),
-                    NewStatus = (DeleteStatus)reader.GetInt32(reader.GetOrdinal("NewStatus")),
-                    Message = reader.GetString(reader.GetOrdinal("Message")),
+                    AffectedRecords = reader.GetInt32(rowsAffectedOrd),
+                    NewStatus = (DeleteStatus)reader.GetInt32(newStatusOrd),
+                    Message = reader.GetString(messageOrd),
                     EntityId = entityId,
                     EntityType = entityType
                 };
@@ -370,12 +443,17 @@ namespace RetailConnect.API.Data
 
             if (await reader.ReadAsync())
             {
+                var cache = new OrdinalCache();
+                var rowsAffectedOrd = cache.Get(reader, "RowsAffected");
+                var newStatusOrd = cache.Get(reader, "NewStatus");
+                var messageOrd = cache.Get(reader, "Message");
+
                 return new DeleteOperationResult
                 {
                     Success = true,
-                    AffectedRecords = reader.GetInt32(reader.GetOrdinal("RowsAffected")),
-                    NewStatus = (DeleteStatus)reader.GetInt32(reader.GetOrdinal("NewStatus")),
-                    Message = reader.GetString(reader.GetOrdinal("Message")),
+                    AffectedRecords = reader.GetInt32(rowsAffectedOrd),
+                    NewStatus = (DeleteStatus)reader.GetInt32(newStatusOrd),
+                    Message = reader.GetString(messageOrd),
                     EntityId = entityId,
                     EntityType = entityType
                 };

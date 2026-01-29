@@ -7,10 +7,12 @@ namespace RetailConnect.API.Services.Implementations
     public class TouchpointService : ITouchpointService
     {
         private readonly TouchpointDataAccess _dataAccess;
+        private readonly ILogger<TouchpointService> _logger;
 
-        public TouchpointService(TouchpointDataAccess dataAccess)
+        public TouchpointService(TouchpointDataAccess dataAccess, ILogger<TouchpointService> logger)
         {
             _dataAccess = dataAccess;
+            _logger = logger;
         }
 
         public async Task<TouchpointResponse> CreateTouchpointAsync(CreateTouchpointRequest request)

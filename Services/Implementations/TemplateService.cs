@@ -7,10 +7,12 @@ namespace RetailConnect.API.Services.Implementations
     public class TemplateService : ITemplateService
     {
         private readonly TemplateDataAccess _dataAccess;
+        private readonly ILogger<TemplateService> _logger;
 
-        public TemplateService(TemplateDataAccess dataAccess)
+        public TemplateService(TemplateDataAccess dataAccess, ILogger<TemplateService> logger)
         {
             _dataAccess = dataAccess;
+            _logger = logger;
         }
 
         public async Task<TemplateResponse> CreateTemplateAsync(CreateTemplateRequest request)

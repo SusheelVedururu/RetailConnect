@@ -1,17 +1,20 @@
 using System.Data;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using RetailConnect.API.Models;
+using RetailConnect.API.Data.Helpers;
 
 namespace RetailConnect.API.Data
 {
     public class CampaignDataAccess
     {
         private readonly string _connectionString;
+        private readonly ILogger<CampaignDataAccess> _logger;
 
-        public CampaignDataAccess(IConfiguration configuration)
+        public CampaignDataAccess(IConfiguration configuration, ILogger<CampaignDataAccess> logger)
         {
-            _connectionString = configuration.GetConnectionString("DefaultConnection") 
+            _connectionString = configuration.GetConnectionString("DefaultConnection")
                 ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+            _logger = logger;
         }
 
         public async Task<int> CreateCampaignAsync(CreateCampaignRequest request)
@@ -43,14 +46,22 @@ namespace RetailConnect.API.Data
 
             if (await reader.ReadAsync())
             {
+                var cache = new OrdinalCache();
+                var idOrd = cache.Get(reader, "Id");
+                var nameOrd = cache.Get(reader, "Name");
+                var startDateOrd = cache.Get(reader, "StartDate");
+                var endDateOrd = cache.Get(reader, "EndDate");
+                var isActiveOrd = cache.Get(reader, "IsActive");
+                var createdOrd = cache.Get(reader, "CreatedDate");
+
                 return new CampaignResponse
                 {
-                    Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                    Name = reader.GetString(reader.GetOrdinal("Name")),
-                    StartDate = reader.IsDBNull(reader.GetOrdinal("StartDate")) ? null : reader.GetDateTime(reader.GetOrdinal("StartDate")),
-                    EndDate = reader.IsDBNull(reader.GetOrdinal("EndDate")) ? null : reader.GetDateTime(reader.GetOrdinal("EndDate")),
-                    IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
-                    CreatedDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate"))
+                    Id = reader.GetInt32(idOrd),
+                    Name = reader.GetString(nameOrd),
+                    StartDate = reader.IsDBNull(startDateOrd) ? null : reader.GetDateTime(startDateOrd),
+                    EndDate = reader.IsDBNull(endDateOrd) ? null : reader.GetDateTime(endDateOrd),
+                    IsActive = reader.GetBoolean(isActiveOrd),
+                    CreatedDate = reader.GetDateTime(createdOrd)
                 };
             }
 
@@ -68,13 +79,26 @@ namespace RetailConnect.API.Data
             await connection.OpenAsync();
             using var reader = await command.ExecuteReaderAsync();
 
+            var cache = new OrdinalCache();
+            var idOrd = -1;
+            var nameOrd = -1;
+            var isActiveOrd = -1;
+
             while (await reader.ReadAsync())
             {
+                // Cache ordinals on first read
+                if (idOrd == -1)
+                {
+                    idOrd = cache.Get(reader, "Id");
+                    nameOrd = cache.Get(reader, "Name");
+                    isActiveOrd = cache.Get(reader, "IsActive");
+                }
+
                 campaigns.Add(new CampaignListItem
                 {
-                    Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                    Name = reader.GetString(reader.GetOrdinal("Name")),
-                    IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive"))
+                    Id = reader.GetInt32(idOrd),
+                    Name = reader.GetString(nameOrd),
+                    IsActive = reader.GetBoolean(isActiveOrd)
                 });
             }
 

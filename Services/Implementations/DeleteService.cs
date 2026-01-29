@@ -2,7 +2,7 @@ using RetailConnect.API.Data;
 using RetailConnect.API.Exceptions;
 using RetailConnect.API.Models;
 using RetailConnect.API.Services.Interfaces;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 
 namespace RetailConnect.API.Services.Implementations
 {

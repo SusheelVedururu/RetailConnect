@@ -11,10 +11,12 @@ namespace RetailConnect.API.Services.Implementations
     public class SegmentService : ISegmentService
     {
         private readonly SegmentDataAccess _dataAccess;
+        private readonly ILogger<SegmentService> _logger;
 
-        public SegmentService(SegmentDataAccess dataAccess)
+        public SegmentService(SegmentDataAccess dataAccess, ILogger<SegmentService> logger)
         {
             _dataAccess = dataAccess;
+            _logger = logger;
         }
 
         public async Task<SegmentResponse> CreateSegmentAsync(CreateSegmentRequest request)

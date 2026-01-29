@@ -7,10 +7,12 @@ namespace RetailConnect.API.Services.Implementations
     public class CampaignService : ICampaignService
     {
         private readonly CampaignDataAccess _dataAccess;
+        private readonly ILogger<CampaignService> _logger;
 
-        public CampaignService(CampaignDataAccess dataAccess)
+        public CampaignService(CampaignDataAccess dataAccess, ILogger<CampaignService> logger)
         {
             _dataAccess = dataAccess;
+            _logger = logger;
         }
 
         public async Task<CampaignResponse> CreateCampaignAsync(CreateCampaignRequest request)

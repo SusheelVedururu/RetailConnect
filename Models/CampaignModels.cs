@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace RetailConnect.API.Models
 {
@@ -7,7 +8,10 @@ namespace RetailConnect.API.Models
     /// </summary>
     public class CreateCampaignRequest
     {
+        [Required(ErrorMessage = "Campaign name is required")]
+        [MaxLength(100, ErrorMessage = "Name cannot exceed 100 characters")]
         public string Name { get; set; } = string.Empty;
+
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
         public bool IsActive { get; set; } = true;
@@ -18,7 +22,10 @@ namespace RetailConnect.API.Models
     /// </summary>
     public class UpdateCampaignRequest
     {
+        [Required(ErrorMessage = "Campaign name is required")]
+        [MaxLength(100, ErrorMessage = "Name cannot exceed 100 characters")]
         public string Name { get; set; } = string.Empty;
+
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
         public bool IsActive { get; set; }

@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace RetailConnect.API.Models
 {
     /// <summary>
@@ -37,9 +39,12 @@ namespace RetailConnect.API.Models
     public class SoftDeleteRequest
     {
         /// <summary>Username or system performing the delete</summary>
+        [Required(ErrorMessage = "DeletedBy is required")]
+        [MaxLength(100, ErrorMessage = "DeletedBy cannot exceed 100 characters")]
         public string DeletedBy { get; set; } = "System";
-        
+
         /// <summary>Optional reason for deletion (audit purposes)</summary>
+        [MaxLength(500, ErrorMessage = "Delete reason cannot exceed 500 characters")]
         public string? DeleteReason { get; set; }
     }
 
@@ -49,11 +54,14 @@ namespace RetailConnect.API.Models
     public class HardDeleteRequest
     {
         /// <summary>Username or system performing the delete</summary>
+        [Required(ErrorMessage = "DeletedBy is required")]
+        [MaxLength(100, ErrorMessage = "DeletedBy cannot exceed 100 characters")]
         public string DeletedBy { get; set; } = "System";
-        
+
         /// <summary>Optional reason for deletion (audit purposes)</summary>
+        [MaxLength(500, ErrorMessage = "Delete reason cannot exceed 500 characters")]
         public string? DeleteReason { get; set; }
-        
+
         /// <summary>
         /// Set to true to force delete even if dependencies exist.
         /// This will NOT delete dependencies, just override the check.

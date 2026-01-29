@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace RetailConnect.API.Models
 {
     public class CampaignLogResponse
@@ -21,9 +23,15 @@ namespace RetailConnect.API.Models
 
     public class CampaignLogFilterRequest
     {
+        [Range(1, int.MaxValue, ErrorMessage = "Campaign ID must be greater than zero")]
         public int? CampaignId { get; set; }
+
+        [Range(1, int.MaxValue, ErrorMessage = "Contact ID must be greater than zero")]
         public int? ContactId { get; set; }
+
+        [MaxLength(50, ErrorMessage = "Execution status cannot exceed 50 characters")]
         public string? ExecutionStatus { get; set; }
+
         public DateTime? FromDate { get; set; }
         public DateTime? ToDate { get; set; }
     }
