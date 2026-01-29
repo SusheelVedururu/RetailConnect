@@ -39,12 +39,12 @@ namespace RetailConnect.API.Data
             {
                 list.Add(new CampaignTouchpointResponse
                 {
-                    Id = reader.GetInt32(0),
-                    CampaignId = reader.GetInt32(1),
-                    TouchpointId = reader.GetInt32(2),
-                    SequenceOrder = reader.GetInt32(3),
-                    IsActive = reader.GetBoolean(4),
-                    CreatedDate = reader.GetDateTime(5)
+                    Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                    CampaignId = reader.GetInt32(reader.GetOrdinal("CampaignId")),
+                    TouchpointId = reader.GetInt32(reader.GetOrdinal("TouchpointId")),
+                    SequenceOrder = reader.GetInt32(reader.GetOrdinal("SequenceOrder")),
+                    IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
+                    CreatedDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate"))
                 });
             }
             return list;
@@ -57,7 +57,8 @@ namespace RetailConnect.API.Data
             command.CommandType = CommandType.StoredProcedure;
             command.Parameters.AddWithValue("@Id", id);
             await connection.OpenAsync();
-            return Convert.ToInt32(await command.ExecuteScalarAsync()) > 0;
+            var rows = await command.ExecuteNonQueryAsync();
+            return rows > 0;
         }
     }
 
@@ -96,12 +97,12 @@ namespace RetailConnect.API.Data
             {
                 list.Add(new CampaignTemplateResponse
                 {
-                    Id = reader.GetInt32(0),
-                    CampaignId = reader.GetInt32(1),
-                    TemplateVersionId = reader.GetInt32(2),
-                    AllocationPercent = reader.GetInt32(3),
-                    IsActive = reader.GetBoolean(4),
-                    CreatedDate = reader.GetDateTime(5)
+                    Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                    CampaignId = reader.GetInt32(reader.GetOrdinal("CampaignId")),
+                    TemplateVersionId = reader.GetInt32(reader.GetOrdinal("TemplateVersionId")),
+                    AllocationPercent = (int)reader.GetDecimal(reader.GetOrdinal("AllocationPercent")),
+                    IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
+                    CreatedDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate"))
                 });
             }
             return list;
@@ -114,7 +115,8 @@ namespace RetailConnect.API.Data
             command.CommandType = CommandType.StoredProcedure;
             command.Parameters.AddWithValue("@Id", id);
             await connection.OpenAsync();
-            return Convert.ToInt32(await command.ExecuteScalarAsync()) > 0;
+            var rows = await command.ExecuteNonQueryAsync();
+            return rows > 0;
         }
     }
 
@@ -144,21 +146,21 @@ namespace RetailConnect.API.Data
             {
                 list.Add(new CampaignLogResponse
                 {
-                    Id = reader.GetInt64(0),
-                    CampaignId = reader.GetInt32(1),
-                    ContactId = reader.GetInt32(2),
-                    TouchpointId = reader.GetInt32(3),
-                    TouchCounter = reader.IsDBNull(4) ? null : reader.GetInt32(4),
-                    TemplateVersionId = reader.IsDBNull(5) ? null : reader.GetInt32(5),
-                    SuccessValue = reader.IsDBNull(6) ? null : reader.GetInt32(6),
-                    ExecutionStatus = reader.IsDBNull(7) ? null : reader.GetString(7),
-                    ErrorMessage = reader.IsDBNull(8) ? null : reader.GetString(8),
-                    SentDate = reader.IsDBNull(9) ? null : reader.GetDateTime(9),
-                    DeliveredDate = reader.IsDBNull(10) ? null : reader.GetDateTime(10),
-                    OpenedDate = reader.IsDBNull(11) ? null : reader.GetDateTime(11),
-                    ClickedDate = reader.IsDBNull(12) ? null : reader.GetDateTime(12),
-                    LastUpdated = reader.IsDBNull(13) ? null : reader.GetDateTime(13),
-                    CreatedDate = reader.GetDateTime(14)
+                    Id = reader.GetInt64(reader.GetOrdinal("Id")),
+                    CampaignId = reader.GetInt32(reader.GetOrdinal("CampaignId")),
+                    ContactId = reader.GetInt32(reader.GetOrdinal("ContactId")),
+                    TouchpointId = reader.GetInt32(reader.GetOrdinal("TouchpointId")),
+                    TouchCounter = reader.IsDBNull(reader.GetOrdinal("TouchCounter")) ? null : reader.GetInt32(reader.GetOrdinal("TouchCounter")),
+                    TemplateVersionId = reader.IsDBNull(reader.GetOrdinal("TemplateVersionId")) ? null : reader.GetInt32(reader.GetOrdinal("TemplateVersionId")),
+                    SuccessValue = reader.IsDBNull(reader.GetOrdinal("SuccessValue")) ? null : reader.GetBoolean(reader.GetOrdinal("SuccessValue")),
+                    ExecutionStatus = reader.IsDBNull(reader.GetOrdinal("ExecutionStatus")) ? null : reader.GetString(reader.GetOrdinal("ExecutionStatus")),
+                    ErrorMessage = reader.IsDBNull(reader.GetOrdinal("ErrorMessage")) ? null : reader.GetString(reader.GetOrdinal("ErrorMessage")),
+                    SentDate = reader.IsDBNull(reader.GetOrdinal("SentDate")) ? null : reader.GetDateTime(reader.GetOrdinal("SentDate")),
+                    DeliveredDate = reader.IsDBNull(reader.GetOrdinal("DeliveredDate")) ? null : reader.GetDateTime(reader.GetOrdinal("DeliveredDate")),
+                    OpenedDate = reader.IsDBNull(reader.GetOrdinal("OpenedDate")) ? null : reader.GetDateTime(reader.GetOrdinal("OpenedDate")),
+                    ClickedDate = reader.IsDBNull(reader.GetOrdinal("ClickedDate")) ? null : reader.GetDateTime(reader.GetOrdinal("ClickedDate")),
+                    LastUpdated = reader.IsDBNull(reader.GetOrdinal("LastUpdated")) ? null : reader.GetDateTime(reader.GetOrdinal("LastUpdated")),
+                    CreatedDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate"))
                 });
             }
             return list;

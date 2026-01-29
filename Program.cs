@@ -19,12 +19,24 @@ builder.Services.AddScoped<TouchpointDataAccess>();
 builder.Services.AddScoped<CampaignTouchpointDataAccess>();
 builder.Services.AddScoped<CampaignTemplateDataAccess>();
 builder.Services.AddScoped<CampaignLogDataAccess>();
+builder.Services.AddScoped<DeleteDataAccess>();
 
 // Register Services (Business Logic Layer)
 builder.Services.AddScoped<ISegmentService, SegmentService>();
 builder.Services.AddScoped<ICampaignService, CampaignService>();
 builder.Services.AddScoped<ITemplateService, TemplateService>();
 builder.Services.AddScoped<ITouchpointService, TouchpointService>();
+builder.Services.AddScoped<IDeleteService, DeleteService>();
+
+// Add CORS (must be before builder.Build())
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowUI",
+        policy => policy
+            .WithOrigins("https://localhost:5001", "https://localhost:7229", "http://localhost:5191")
+            .AllowAnyHeader()
+            .AllowAnyMethod());
+});
 
 var app = builder.Build();
 
@@ -34,6 +46,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCors("AllowUI");
+
 
 app.UseHttpsRedirection();
 

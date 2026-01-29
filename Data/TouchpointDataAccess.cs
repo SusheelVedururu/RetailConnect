@@ -94,5 +94,18 @@ namespace RetailConnect.API.Data
             var rowsAffected = await command.ExecuteNonQueryAsync();
             return rowsAffected > 0;
         }
+
+        public async Task<bool> DeleteTouchpointAsync(int id)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            using var command = new SqlCommand("DELETE FROM RetailConnect.T_Touchpoints WHERE TouchpointID = @Id", connection);
+            command.CommandType = CommandType.Text;
+
+            command.Parameters.AddWithValue("@Id", id);
+
+            await connection.OpenAsync();
+            var rowsAffected = await command.ExecuteNonQueryAsync();
+            return rowsAffected > 0;
+        }
     }
 }

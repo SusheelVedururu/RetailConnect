@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "New Profile",
+    "Projects": [
+      {
+        "Path": "RetailConnect.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "..\\RetailConnectUi\\RetailConnectApp\\RetailConnectAPp.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

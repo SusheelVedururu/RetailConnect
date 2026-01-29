@@ -117,5 +117,17 @@ namespace RetailConnect.API.Controllers
                 return Conflict(ex.Message);
             }
         }
+        [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteSegment(int id)
+        {
+            try
+            {
+                var success = await _segmentService.DeleteSegmentAsync(id);
+                return success ? Ok() : NotFound();
+            }
+            catch (KeyNotFoundException ex) { return NotFound(ex.Message); }
+        }
     }
 }

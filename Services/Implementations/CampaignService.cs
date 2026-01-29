@@ -66,7 +66,7 @@ namespace RetailConnect.API.Services.Implementations
 
             if (existingCampaign.Name != request.Name)
             {
-                var exists = await _dataAccess.CampaignExistsAsync(request.Name);
+                var exists = await _dataAccess.CampaignExistsAsync(request.Name, id);
                 if (exists)
                     throw new InvalidOperationException($"Campaign with name '{request.Name}' already exists");
             }
@@ -80,6 +80,14 @@ namespace RetailConnect.API.Services.Implementations
                 throw new InvalidOperationException("Failed to retrieve updated campaign");
 
             return campaign;
+        }
+        public async Task<bool> DeleteCampaignAsync(int id)
+        {
+            if (id <= 0) throw new ArgumentException("Invalid ID");
+            var exists = await _dataAccess.GetCampaignByIdAsync(id);
+            if (exists == null) throw new KeyNotFoundException($"Campaign {id} not found");
+
+            return await _dataAccess.DeleteCampaignAsync(id);
         }
     }
 }

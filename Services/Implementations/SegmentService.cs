@@ -90,7 +90,7 @@ namespace RetailConnect.API.Services.Implementations
             // Business Rule: Name must be unique (if changed)
             if (existingSegment.Name != request.Name)
             {
-                var nameExists = await _dataAccess.SegmentExistsAsync(request.Name);
+                var nameExists = await _dataAccess.SegmentExistsAsync(request.Name, id);
                 if (nameExists)
                     throw new InvalidOperationException($"Segment with name '{request.Name}' already exists");
             }
@@ -118,6 +118,14 @@ namespace RetailConnect.API.Services.Implementations
             // Implement your criteria validation logic here
             // This is just an example
             return !string.IsNullOrWhiteSpace(criteria);
+        }
+        public async Task<bool> DeleteSegmentAsync(int id)
+        {
+            if (id <= 0) throw new ArgumentException("Invalid ID");
+            var exists = await _dataAccess.GetSegmentByIdAsync(id);
+            if (exists == null) throw new KeyNotFoundException($"Segment {id} not found");
+
+            return await _dataAccess.DeleteSegmentAsync(id);
         }
     }
 }

@@ -8,7 +8,7 @@ namespace RetailConnect.API.Models
         public int TouchpointId { get; set; }
         public int? TouchCounter { get; set; }
         public int? TemplateVersionId { get; set; }
-        public int? SuccessValue { get; set; }
+        public bool? SuccessValue { get; set; }
         public string? ExecutionStatus { get; set; }
         public string? ErrorMessage { get; set; }
         public DateTime? SentDate { get; set; }

@@ -54,5 +54,15 @@ namespace RetailConnect.API.Controllers
             }
             catch (KeyNotFoundException ex) { return NotFound(ex.Message); }
         }
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            try
+            {
+                var success = await _service.DeleteTouchpointAsync(id);
+                return success ? Ok() : NotFound();
+            }
+            catch (KeyNotFoundException ex) { return NotFound(ex.Message); }
+        }
     }
 }

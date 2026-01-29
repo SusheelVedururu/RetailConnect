@@ -99,13 +99,28 @@ namespace RetailConnect.API.Data
             return rowsAffected > 0;
         }
 
-        public async Task<bool> CampaignExistsAsync(string name)
+        public async Task<bool> DeleteCampaignAsync(int id)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            using var command = new SqlCommand("DELETE FROM RetailConnect.T_Campaign WHERE CampaignID = @Id", connection);
+            command.CommandType = CommandType.Text;
+
+            command.Parameters.AddWithValue("@Id", id);
+
+            await connection.OpenAsync();
+            var rowsAffected = await command.ExecuteNonQueryAsync();
+
+            return rowsAffected > 0;
+        }
+
+        public async Task<bool> CampaignExistsAsync(string name, int? excludeId = null)
         {
             using var connection = new SqlConnection(_connectionString);
             using var command = new SqlCommand("usp_CheckCampaignExists", connection);
             command.CommandType = CommandType.StoredProcedure;
 
             command.Parameters.AddWithValue("@Name", name);
+            command.Parameters.AddWithValue("@ExcludeId", excludeId ?? (object)DBNull.Value);
 
             await connection.OpenAsync();
             var result = await command.ExecuteScalarAsync();

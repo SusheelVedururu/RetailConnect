@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RetailConnect")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+55b6941820c6cc8ef5e51840d29994c6951ea009")]
 [assembly: System.Reflection.AssemblyProductAttribute("RetailConnect")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RetailConnect")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

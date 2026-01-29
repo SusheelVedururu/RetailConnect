@@ -45,5 +45,13 @@ namespace RetailConnect.API.Services.Implementations
 
             return await GetTouchpointByIdAsync(id);
         }
+        public async Task<bool> DeleteTouchpointAsync(int id)
+        {
+            if (id <= 0) throw new ArgumentException("Invalid ID");
+            var exists = await _dataAccess.GetTouchpointByIdAsync(id);
+            if (exists == null) throw new KeyNotFoundException($"Touchpoint {id} not found");
+
+            return await _dataAccess.DeleteTouchpointAsync(id);
+        }
     }
 }

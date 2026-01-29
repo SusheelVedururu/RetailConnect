@@ -8,5 +8,6 @@ namespace RetailConnect.API.Services.Interfaces
         Task<TouchpointResponse> GetTouchpointByIdAsync(int id);
         Task<List<TouchpointResponse>> GetAllTouchpointsAsync();
         Task<TouchpointResponse> UpdateTouchpointAsync(int id, UpdateTouchpointRequest request);
+        Task<bool> DeleteTouchpointAsync(int id);
     }
 }

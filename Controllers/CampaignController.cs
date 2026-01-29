@@ -70,5 +70,17 @@ namespace RetailConnect.API.Controllers
             catch (KeyNotFoundException ex) { return NotFound(ex.Message); }
             catch (InvalidOperationException ex) { return Conflict(ex.Message); }
         }
+        [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteCampaign(int id)
+        {
+            try
+            {
+                var success = await _campaignService.DeleteCampaignAsync(id);
+                return success ? Ok() : NotFound();
+            }
+            catch (KeyNotFoundException ex) { return NotFound(ex.Message); }
+        }
     }
 }

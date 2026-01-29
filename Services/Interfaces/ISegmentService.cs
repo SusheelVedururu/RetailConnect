@@ -11,5 +11,6 @@ namespace RetailConnect.API.Services.Interfaces
         Task<SegmentResponse> GetSegmentByIdAsync(int id);
         Task<List<SegmentListItem>> GetAllSegmentsAsync();
         Task<SegmentResponse> UpdateSegmentAsync(int id, UpdateSegmentRequest request);
+        Task<bool> DeleteSegmentAsync(int id);
     }
 }
